@@ -91,7 +91,9 @@ npm --version
 > - `%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe`（用户级安装）
 > - C 盘、D 盘的 Program Files 目录
 
-> 提醒用户：Chrome 启动后请在浏览器中打开 https://www.tianyancha.com 并完成登录，然后再继续。
+> ⚠️ **用户操作**：Chrome 启动后，请手动在浏览器中打开 https://www.tianyancha.com 并完成登录。
+> 
+> 登录完成后，告知我"已登录"，我将继续执行后续步骤。
 
 **安装 npm 依赖：**
 ```bash
