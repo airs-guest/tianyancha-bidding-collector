@@ -13,6 +13,8 @@ description: 连接天眼查网站，批量搜索企业全称并下载招投标/
 ├── scripts/
 │   ├── package.json                   # npm 依赖声明（在此目录执行 npm install）
 │   ├── settings.json                  # 浏览器与采集配置
+│   ├── setup-node.sh                  # Node.js 环境检测与自动安装脚本 (macOS/Linux)
+│   ├── setup-node.ps1                 # Node.js 环境检测与自动安装脚本 (Windows)
 │   ├── step1_search_companies.js      # 企业搜索确认
 │   ├── step2_download_bidding.js      # 招投标下载
 │   ├── browser.js                     # Puppeteer 浏览器连接
@@ -46,12 +48,37 @@ description: 连接天眼查网站，批量搜索企业全称并下载招投标/
 
 ## Execution Logic
 
-### Step 0: 前置环境检查（跨平台）
+### Step 1: 前置环境检查（跨平台）
 
-**检测操作系统：**
+#### 1.1 检测操作系统
+
 ```bash
 node -e "console.log(process.platform)"
 ```
+
+#### 1.2 Node.js 环境检测与自动安装
+
+首先检测 Node.js 是否已安装：
+
+```bash
+node --version
+npm --version
+```
+
+**如未安装，使用自动安装脚本：**
+
+| 平台 | 命令 |
+|------|------|
+| macOS/Linux | `bash SKILL_DIR/scripts/setup-node.sh` |
+| Windows | `powershell -ExecutionPolicy Bypass -File SKILL_DIR\scripts\setup-node.ps1` |
+
+脚本功能：
+- 自动检测 Node.js 是否已安装及版本号
+- 未安装时自动下载并安装 Node.js v20.20.0 (LTS)
+- 支持 nvm 版本管理器或直接安装两种方式
+- 跨平台支持 macOS (Intel/Apple Silicon)、Linux、Windows
+
+#### 1.3 Chrome 环境检查
 
 脚本会自动完成以下操作：
 1. 检测 Chrome 远程调试端口（9222）是否已开启
@@ -71,7 +98,7 @@ node -e "console.log(process.platform)"
 cd SKILL_DIR/scripts && npm install
 ```
 
-### Step 1: 参数提取
+### Step 2: 参数提取
 
 从用户 prompt 中提取以下参数（均有默认值）：
 
@@ -93,7 +120,7 @@ cd SKILL_DIR/scripts && npm install
 ```
 然后使用 `--company-file` 指向该文件。
 
-### Step 2: 企业搜索确认
+### Step 3: 企业搜索确认
 
 ```bash
 cd SKILL_DIR/scripts
@@ -110,7 +137,7 @@ node step1_search_companies.js --company-file SKILL_DIR/data/custom_companies.md
 - 未找到的企业及名称
 - 失败的企业及原因
 
-### Step 3: 招投标记录下载
+### Step 4: 招投标记录下载
 
 ```bash
 cd SKILL_DIR/scripts
