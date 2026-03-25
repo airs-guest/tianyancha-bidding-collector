@@ -62,6 +62,14 @@ node -e "console.log(process.platform)"
 | Windows CMD | `start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir=%TEMP%\chrome_dev --no-first-run --no-default-browser-check` |
 | Windows PowerShell | `& "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir=$env:TEMP\chrome_dev --no-first-run --no-default-browser-check` |
 
+> **Windows Chrome 路径说明：** Chrome 可能安装在以下位置，请根据实际情况替换上述命令中的路径：
+> - `C:\Program Files\Google\Chrome\Application\chrome.exe`（64 位默认）
+> - `C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`（32 位）
+> - `D:\Program Files\Google\Chrome\Application\chrome.exe`（D 盘安装）
+> - `%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe`（用户级安装）
+>
+> 脚本运行时会自动检测 Chrome 安装路径并在连接失败时给出正确的启动命令。
+
 > 提醒用户：启动后请在 Chrome 中打开 https://www.tianyancha.com 并完成登录，然后再继续。
 
 **安装 npm 依赖：**

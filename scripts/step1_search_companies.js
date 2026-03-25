@@ -7,7 +7,10 @@
  * 用法:
  *   1. 先用远程调试模式启动 Chrome 并登录天眼查:
  *      macOS: /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
- *      Windows (CMD): start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
+ *      Windows (CMD): start "" "<Chrome安装路径>\chrome.exe" --remote-debugging-port=9222
+ *        常见路径: C:\Program Files\Google\Chrome\Application\chrome.exe
+ *                  C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
+ *                  D:\Program Files\Google\Chrome\Application\chrome.exe
  *   2. 运行: npm run step1 [-- --company-file /path/to/list.md]
  *
  * CLI 参数（可选）：
