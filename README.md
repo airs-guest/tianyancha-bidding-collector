@@ -6,7 +6,7 @@
 
 ```
 tianyancha-bidding-collector/
-├── SKILL.md                          # AI Skill 定义（Claude Code 自动加载）
+├── SKILL.md                          # AI Skill 定义（自动加载）
 ├── README.md                         # 本文件
 ├── assets/
 │   └── 具身智能中游企业数据库.md        # 默认企业名单
@@ -38,8 +38,11 @@ tianyancha-bidding-collector/
 
 ## 安装
 
+Skill 目录位于 `~/.qclaw/skills/tianyancha-bidding-collector`（优先）或 `~/.openclaw/skills/tianyancha-bidding-collector`。Windows 用户对应 `%USERPROFILE%\.qclaw\skills\...` 或 `%USERPROFILE%\.openclaw\skills\...`。
+
 ```bash
-cd ~/.claude/skills/tianyancha-bidding-collector/scripts
+# 进入实际的 skill 目录（以 qclaw 为例）
+cd ~/.qclaw/skills/tianyancha-bidding-collector/scripts
 npm install
 ```
 
@@ -57,41 +60,13 @@ npm install
 
 ### 方式二：手动执行脚本
 
-#### 1. 启动 Chrome 远程调试
+#### 1. Step 1：企业搜索确认
 
-**macOS：**
-```bash
-/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
-  --remote-debugging-port=9222 \
-  --user-data-dir=/tmp/chrome_dev \
-  --no-first-run \
-  --no-default-browser-check
-```
-
-**Windows CMD：**
-```cmd
-start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" ^
-  --remote-debugging-port=9222 ^
-  --user-data-dir=%TEMP%\chrome_dev ^
-  --no-first-run ^
-  --no-default-browser-check
-```
-
-**Windows PowerShell：**
-```powershell
-& "C:\Program Files\Google\Chrome\Application\chrome.exe" `
-  --remote-debugging-port=9222 `
-  --user-data-dir=$env:TEMP\chrome_dev `
-  --no-first-run `
-  --no-default-browser-check
-```
-
-启动后在 Chrome 中打开 https://www.tianyancha.com 并登录。
-
-#### 2. Step 1：企业搜索确认
+> 脚本会自动检测 Chrome 安装路径并以远程调试模式启动，无需手动启动浏览器。
+> 启动后请在 Chrome 中打开 https://www.tianyancha.com 并登录。
 
 ```bash
-cd ~/.claude/skills/tianyancha-bidding-collector/scripts
+cd ~/.qclaw/skills/tianyancha-bidding-collector/scripts
 
 # 使用内置默认企业名单
 node step1_search_companies.js
@@ -102,7 +77,7 @@ node step1_search_companies.js --company-file /path/to/custom_list.md
 
 输出：`data/company_list.csv`
 
-#### 3. Step 2：招投标记录下载
+#### 2. Step 2：招投标记录下载
 
 ```bash
 node step2_download_bidding.js --start-date 2026-01-01 --end-date 2026-03-31 --min-amount 0

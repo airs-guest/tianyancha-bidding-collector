@@ -6,7 +6,7 @@ description: 连接天眼查网站，批量搜索企业全称并下载招投标/
 ## Skill 目录结构
 
 ```
-~/.claude/skills/tianyancha-bidding-collector/   ← SKILL_DIR
+<SKILL_DIR>/tianyancha-bidding-collector/
 ├── SKILL.md
 ├── assets/
 │   └── 具身智能中游企业数据库.md        # 默认企业名单
@@ -27,7 +27,14 @@ description: 连接天眼查网站，批量搜索企业全称并下载招投标/
 └── data/                              # 运行时输出（自动创建）
 ```
 
-**SKILL_DIR** = `~/.claude/skills/tianyancha-bidding-collector`
+**SKILL_DIR 解析规则（按优先级）：**
+
+| 优先级 | macOS / Linux | Windows |
+|--------|---------------|---------|
+| 1 | `~/.qclaw/skills/tianyancha-bidding-collector` | `%USERPROFILE%\.qclaw\skills\tianyancha-bidding-collector` |
+| 2 | `~/.openclaw/skills/tianyancha-bidding-collector` | `%USERPROFILE%\.openclaw\skills\tianyancha-bidding-collector` |
+
+取第一个存在的路径作为 SKILL_DIR。
 
 ## When to Use
 
@@ -46,31 +53,18 @@ description: 连接天眼查网站，批量搜索企业全称并下载招投标/
 node -e "console.log(process.platform)"
 ```
 
-**检查 Chrome 远程调试端口（9222）是否已开启：**
+脚本会自动完成以下操作：
+1. 检测 Chrome 远程调试端口（9222）是否已开启
+2. 如未开启，自动检测 Chrome 安装路径并以远程调试模式启动
+3. 支持 macOS、Windows（多路径自动检测）、Linux
 
-| 平台 | 检测命令 |
-|------|----------|
-| macOS / Linux | `lsof -i :9222` |
-| Windows CMD | `netstat -ano \| findstr :9222` |
-| Windows PowerShell | `Get-NetTCPConnection -LocalPort 9222 -ErrorAction SilentlyContinue` |
-
-**如未开启，引导用户启动 Chrome：**
-
-| 平台 | 启动命令 |
-|------|----------|
-| macOS | `/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome_dev --no-first-run --no-default-browser-check` |
-| Windows CMD | `start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir=%TEMP%\chrome_dev --no-first-run --no-default-browser-check` |
-| Windows PowerShell | `& "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir=$env:TEMP\chrome_dev --no-first-run --no-default-browser-check` |
-
-> **Windows Chrome 路径说明：** Chrome 可能安装在以下位置，请根据实际情况替换上述命令中的路径：
-> - `C:\Program Files\Google\Chrome\Application\chrome.exe`（64 位默认）
-> - `C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`（32 位）
-> - `D:\Program Files\Google\Chrome\Application\chrome.exe`（D 盘安装）
+> **Windows Chrome 路径自动检测范围：**
+> - `%PROGRAMFILES%\Google\Chrome\Application\chrome.exe`（64 位默认）
+> - `%PROGRAMFILES(X86)%\Google\Chrome\Application\chrome.exe`（32 位）
 > - `%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe`（用户级安装）
->
-> 脚本运行时会自动检测 Chrome 安装路径并在连接失败时给出正确的启动命令。
+> - C 盘、D 盘的 Program Files 目录
 
-> 提醒用户：启动后请在 Chrome 中打开 https://www.tianyancha.com 并完成登录，然后再继续。
+> 提醒用户：Chrome 启动后请在浏览器中打开 https://www.tianyancha.com 并完成登录，然后再继续。
 
 **安装 npm 依赖：**
 ```bash
@@ -134,7 +128,7 @@ node step2_download_bidding.js --start-date 2026-01-01 --end-date 2026-03-31 --m
 
 | 异常场景 | 处理方式 |
 |----------|----------|
-| Chrome 未连接 / 端口 9222 无响应 | 给出对应平台的 Chrome 启动命令，提醒用户启动后登录天眼查 |
+| Chrome 未连接 / 端口 9222 无响应 | 脚本自动检测 Chrome 路径并启动；如未找到 Chrome 则提示用户安装 |
 | 需要验证码 | 提醒用户在 Chrome 窗口中手动完成验证码，完成后工具会自动继续 |
 | 企业搜索无结果 | 说明可能原因：企业名称不准确、非大陆企业、天眼查未收录 |
 | 招投标无记录 | 说明可能原因：该企业在指定时间范围内无公开招投标、金额门槛过高 |

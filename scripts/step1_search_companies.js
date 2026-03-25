@@ -5,13 +5,8 @@
  * 输出: data/company_list.csv
  * 
  * 用法:
- *   1. 先用远程调试模式启动 Chrome 并登录天眼查:
- *      macOS: /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
- *      Windows (CMD): start "" "<Chrome安装路径>\chrome.exe" --remote-debugging-port=9222
- *        常见路径: C:\Program Files\Google\Chrome\Application\chrome.exe
- *                  C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
- *                  D:\Program Files\Google\Chrome\Application\chrome.exe
- *   2. 运行: npm run step1 [-- --company-file /path/to/list.md]
+ *   运行: npm run step1 [-- --company-file /path/to/list.md]
+ *   脚本会自动检测并启动 Chrome（远程调试模式），无需手动启动。
  *
  * CLI 参数（可选）：
  *   --company-file  自定义企业名单 MD 文件路径（默认使用项目内 具身智能中游企业数据库.md）
