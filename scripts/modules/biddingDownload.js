@@ -1,6 +1,7 @@
 import { delay } from '../browser.js';
 import { logger } from '../utils/logger.js';
 import { withRetry } from '../utils/retry.js';
+import { handleAntiCrawl } from '../utils/antiCrawl.js';
 
 /**
  * 使用天眼查招投标搜索页面获取记录
@@ -43,17 +44,13 @@ export async function downloadBiddingRecords(page, companyUrl, companyName, opti
     await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
     await delay(5000, 8000);
 
-    // 检查验证码
-    const needVerify = await page.evaluate(() => {
-      return !!document.querySelector('.verify-modal, .captcha, [class*="verify-wrap"]');
-    }).catch(() => false);
-
-    if (needVerify) {
-      logger.warn(`⚠️ 出现验证码，请手动处理...`);
-      await page.waitForFunction(() => {
-        return !document.querySelector('.verify-modal, .captcha, [class*="verify-wrap"]');
-      }, { timeout: 120000 }).catch(() => {});
-      await delay(3000, 5000);
+    // 检查反爬：登录弹窗、验证码、滑块等
+    const passedCheck1 = await handleAntiCrawl(page, {
+      context: `搜索 "${companyName}" 的招投标`,
+      expectedUrlPattern: '/toubiao',
+    });
+    if (!passedCheck1) {
+      throw new Error('反爬验证等待超时，请手动登录/验证后重新运行');
     }
 
     // 使用 Puppeteer 原生方法操作搜索框和按钮
@@ -145,11 +142,19 @@ export async function downloadBiddingRecords(page, companyUrl, companyName, opti
     // 等待搜索结果加载 - 页面会跳转到 detail 页面
     logger.info('  等待搜索结果...');
     await delay(5000, 8000);
-    
+
+    // 搜索后再次检查反爬
+    const passedCheck2 = await handleAntiCrawl(page, {
+      context: `"${companyName}" 搜索结果页`,
+    });
+    if (!passedCheck2) {
+      throw new Error('反爬验证等待超时，请手动登录/验证后重新运行');
+    }
+
     // 检查 URL 是否变化（跳转到 detail 页面）
     const currentUrl = await page.url();
     logger.info(`  当前URL: ${currentUrl}`);
-    
+
     // 如果还在搜索页面，可能没有结果，直接返回
     if (currentUrl.includes('/s/toubiao') && !currentUrl.includes('detail')) {
       logger.info('  未跳转到详情页，可能无搜索结果');
@@ -221,6 +226,14 @@ export async function downloadBiddingRecords(page, companyUrl, companyName, opti
       logger.info('  列表已加载');
     } catch (e) {
       logger.warn('  等待列表超时，继续尝试...');
+    }
+
+    // 筛选后再次检查反爬（翻页/筛选也可能触发）
+    const passedCheck3 = await handleAntiCrawl(page, {
+      context: `"${companyName}" 筛选结果`,
+    });
+    if (!passedCheck3) {
+      throw new Error('反爬验证等待超时，请手动登录/验证后重新运行');
     }
 
     // 抓取所有页的招投标记录

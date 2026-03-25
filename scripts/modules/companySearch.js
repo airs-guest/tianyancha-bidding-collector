@@ -1,6 +1,7 @@
 import { delay } from '../browser.js';
 import { logger } from '../utils/logger.js';
-import { withRetry, waitForUserAction } from '../utils/retry.js';
+import { withRetry } from '../utils/retry.js';
+import { handleAntiCrawl } from '../utils/antiCrawl.js';
 
 /**
  * 在天眼查搜索企业名称，获取全称和链接
@@ -17,32 +18,19 @@ export async function searchCompanyOnTianyancha(page, companyName) {
     await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
     await delay(2000, 4000);
 
-    // 检查是否被跳转到反爬/验证页面
-    const currentUrl = page.url();
-    const isAntiCrawl = !currentUrl.includes('/search') ||
-      currentUrl.includes('antirobot') || currentUrl.includes('verify');
-
-    // 检查页面内是否有验证码弹窗
-    const hasVerifyPopup = await page.evaluate(() => {
-      return !!document.querySelector('.verify-modal, .captcha, [class*="verify-wrap"], [class*="captcha"]');
-    }).catch(() => false);
-
-    if (isAntiCrawl || hasVerifyPopup) {
-      logger.warn(`\n${'='.repeat(50)}`);
-      logger.warn(`⚠️  搜索 "${companyName}" 时触发了反爬验证`);
-      logger.warn(`请在 Chrome 浏览器中完成验证码/人机认证`);
-      logger.warn(`完成后脚本将自动继续（最多等待 5 分钟）`);
-      logger.warn(`${'='.repeat(50)}\n`);
-
-      const resolved = await waitForUserAction(page, '请完成验证码认证', 300000);
-      if (resolved) {
-        // 验证通过后重新加载搜索页
-        logger.info(`验证已通过，重新搜索 "${companyName}"...`);
-        await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-        await delay(2000, 4000);
-      } else {
-        throw new Error('验证码等待超时（5分钟），请手动完成后重试');
-      }
+    // 检查反爬：登录弹窗、验证码、滑块、页面跳转等
+    const passed = await handleAntiCrawl(page, {
+      context: `搜索企业 "${companyName}"`,
+      expectedUrlPattern: '/search',
+    });
+    if (!passed) {
+      throw new Error('反爬验证等待超时（5分钟），请手动登录/验证后重试');
+    }
+    // 验证通过后检查 URL 是否仍在搜索页，不在则重新加载
+    if (!page.url().includes('/search')) {
+      logger.info(`验证后重新搜索 "${companyName}"...`);
+      await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+      await delay(2000, 4000);
     }
 
     // 获取搜索结果列表中的第一个企业

@@ -94,24 +94,26 @@ async function processCompany(browser, company, startDate, endDate, minAmount) {
       endDate,
       minAmount,
     });
-    await page.close();
+    await page.close().catch(() => {});
     return { success: true, records };
   } catch (err) {
-    await page.close();
-    // 如果是 frame detached 错误，重试一次
-    if (err.message.includes('detached')) {
-      logger.warn(`  🔄 Frame detached，重试一次...`);
-      const retryPage = await openNewPage(browser);
+    await page.close().catch(() => {});
+    // 如果是 frame detached 或 connection 错误，重试一次
+    if (err.message.includes('detached') || err.message.includes('Connection closed') || err.message.includes('No target')) {
+      logger.warn(`  🔄 浏览器连接问题，重试一次...`);
+      await delay(3000, 5000);
+      let retryPage;
       try {
+        retryPage = await openNewPage(browser);
         const records = await downloadBiddingRecords(retryPage, companyUrl, companyName, {
           startDate,
           endDate,
           minAmount,
         });
-        await retryPage.close();
+        await retryPage.close().catch(() => {});
         return { success: true, records };
       } catch (retryErr) {
-        await retryPage.close();
+        if (retryPage) await retryPage.close().catch(() => {});
         return { success: false, error: retryErr.message };
       }
     }
@@ -178,7 +180,13 @@ async function main() {
 
     logger.info(`[${i + 1}/${pendingCompanies.length}] 处理: ${companyName}`);
 
-    const result = await processCompany(browser, company, START_DATE, END_DATE, MIN_AMOUNT);
+    let result;
+    try {
+      result = await processCompany(browser, company, START_DATE, END_DATE, MIN_AMOUNT);
+    } catch (processErr) {
+      logger.error(`  ❌ 处理 "${companyName}" 异常: ${processErr.message}`);
+      result = { success: false, error: processErr.message };
+    }
 
     if (result.success) {
       if (result.records.length > 0) {
@@ -192,6 +200,15 @@ async function main() {
     } else {
       logger.error(`  ❌ 处理 "${companyName}" 失败: ${result.error}`);
       progress.failed.push({ name: companyName, error: result.error, time: new Date().toISOString() });
+
+      // 如果是反爬超时，提示用户可以重新运行脚本继续
+      if (result.error.includes('反爬验证等待超时')) {
+        logger.warn('');
+        logger.warn('💡 提示: 反爬验证超时，后续企业可能也会受影响');
+        logger.warn('   建议: 先在浏览器中手动登录天眼查，然后重新运行此脚本');
+        logger.warn('   已完成的企业不会重复处理（进度已保存）');
+        logger.warn('');
+      }
     }
 
     // 保存进度
