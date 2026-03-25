@@ -1,0 +1,17 @@
+{
+  "name": "tianyancha-bidding-tool",
+  "version": "1.0.0",
+  "description": "天眼查招投标核查工具 - 具身智能产业数据库",
+  "type": "module",
+  "scripts": {
+    "step1": "node step1_search_companies.js",
+    "step2": "node step2_download_bidding.js"
+  },
+  "dependencies": {
+    "puppeteer-core": "^24.0.0",
+    "xlsx": "^0.18.5",
+    "csv-writer": "^1.6.0",
+    "csv-parse": "^5.6.0",
+    "winston": "^3.17.0"
+  }
+}
