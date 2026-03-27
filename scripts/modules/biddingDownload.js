@@ -56,7 +56,7 @@ export async function downloadBiddingRecords(page, companyUrl, companyName, opti
     // 使用 Puppeteer 原生方法操作搜索框和按钮
     try {
       // 等待搜索框出现
-      await page.waitForSelector('#seo_seach_input, input[placeholder*="公司名称"]', { timeout: 10000 });
+      await page.waitForSelector('#seo_seach_input, input[placeholder*="公司名称"]', { timeout: 30000 });
       
       // 清空并输入企业名称
       const searchInput = await page.$('#seo_seach_input') || await page.$('input[placeholder*="公司名称"]');
@@ -222,7 +222,7 @@ export async function downloadBiddingRecords(page, companyUrl, companyName, opti
       await page.waitForFunction(() => {
         const items = document.querySelectorAll('[class*="index_item__"]');
         return items.length > 0;
-      }, { timeout: 15000 });
+      }, { timeout: 30000 });
       logger.info('  列表已加载');
     } catch (e) {
       logger.warn('  等待列表超时，继续尝试...');
@@ -477,5 +477,5 @@ export async function downloadBiddingRecords(page, companyUrl, companyName, opti
       companyName,
       companyUrl,
     }));
-  }, { maxRetries: 2, delayMs: 5000, label: `下载${companyName}招投标` });
+  }, { maxRetries: 0, delayMs: 5000, label: `下载${companyName}招投标` });
 }

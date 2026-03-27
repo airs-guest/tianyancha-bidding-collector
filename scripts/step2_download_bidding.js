@@ -98,25 +98,6 @@ async function processCompany(browser, company, startDate, endDate, minAmount) {
     return { success: true, records };
   } catch (err) {
     await page.close().catch(() => {});
-    // 如果是 frame detached 或 connection 错误，重试一次
-    if (err.message.includes('detached') || err.message.includes('Connection closed') || err.message.includes('No target')) {
-      logger.warn(`  🔄 浏览器连接问题，重试一次...`);
-      await delay(3000, 5000);
-      let retryPage;
-      try {
-        retryPage = await openNewPage(browser);
-        const records = await downloadBiddingRecords(retryPage, companyUrl, companyName, {
-          startDate,
-          endDate,
-          minAmount,
-        });
-        await retryPage.close().catch(() => {});
-        return { success: true, records };
-      } catch (retryErr) {
-        if (retryPage) await retryPage.close().catch(() => {});
-        return { success: false, error: retryErr.message };
-      }
-    }
     return { success: false, error: err.message };
   }
 }
